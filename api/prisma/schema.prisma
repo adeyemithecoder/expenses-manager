@@ -19,19 +19,6 @@ model User {
   Budget   Budget[]
 }
 
-model Expense {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount      Float
-  categoryId  String   @db.ObjectId
-  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  description String?
-  date        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
 model Category {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   name      String
@@ -43,7 +30,20 @@ model Category {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  @@unique([name, userId]) // Composite unique constraint
+  @@unique([name, userId])
+}
+
+model Expense {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Float
+  categoryId  String   @db.ObjectId
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  description String
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Income {
@@ -54,7 +54,7 @@ model Income {
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   amount     Float
   source     String
-  date       DateTime @default(now())
+  date       DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -72,7 +72,8 @@ model Budget {
   updatedAt  DateTime @updatedAt
 }
 
-enum CategoryType {
+enum TransactionCategory {
+  // Expenses Categories
   FOOD
   TRANSPORT
   ENTERTAINMENT
@@ -84,6 +85,14 @@ enum CategoryType {
   LEISURE
   TECHNOLOGY
   TRAVEL
-  FINANCE
+  SAVINGS
   OTHERS
+
+  // Income Categories
+  SALARY
+  BUSINESS
+  INVESTMENTS
+  FREELANCE
+  GIFTS
+  OTHER_INCOME
 }

@@ -63,9 +63,20 @@ expensesRoute.get(
 
       const expenses = await prisma.expense.findMany({
         where: { userId: userId },
+        include: {
+          category: {
+            select: { name: true }, // Fetch only the category name
+          },
+        },
       });
 
-      res.json(expenses);
+      // Transform each expense to remove the nested category object and add categoryName
+      const formattedExpenses = expenses.map(({ category, ...rest }) => ({
+        ...rest,
+        category: category.name, // Add categoryName field
+      }));
+
+      res.json(formattedExpenses);
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
@@ -79,10 +90,25 @@ expensesRoute.get(
     try {
       const expense = await prisma.expense.findUnique({
         where: { id: req.params.id },
+        include: {
+          category: {
+            select: { name: true }, // Fetch only the category name
+          },
+        },
       });
-      if (!expense)
+
+      if (!expense) {
         return res.status(404).json({ message: "Expense not found" });
-      res.json(expense);
+      }
+
+      // Destructure to remove the nested category property and add categoryName
+      const { category, ...rest } = expense;
+      const formattedExpense = {
+        ...rest,
+        categoryName: category.name,
+      };
+
+      res.json(formattedExpense);
     } catch (err) {
       res.status(500).json({ message: err.message });
     }

@@ -2,9 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { userRoute } from "./routes/users.js";
-import { subjectRoute } from "./routes/subjects.js";
-import { examRoute } from "./routes/exam.js";
 import { expensesRoute } from "./routes/expenses.js";
+import { incomesRoute } from "./routes/income.js";
+import { budgetsRoute } from "./routes/budget.js";
 const app = express();
 dotenv.config();
 app.use(cors());
@@ -13,9 +13,9 @@ app.use(express.json());
 const port = process.env.port || 4000;
 
 app.use("/api/expenses", expensesRoute);
+app.use("/api/incomes", incomesRoute);
+app.use("/api/budgets", budgetsRoute);
 app.use("/api/users", userRoute);
-app.use("/api/subjects", subjectRoute);
-app.use("/api/exams", examRoute);
 
 app.get("/", (req, res) => res.send("welcome to blog app"));
 app.use((err, req, res, next) => {

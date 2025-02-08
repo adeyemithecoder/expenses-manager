@@ -9,7 +9,6 @@ expensesRoute.post(
   "/",
   expressAsyncHandler(async (req, res) => {
     try {
-      console.log(req.body);
       const { userId, amount, category, description, date } = req.body;
 
       // First, try to find if the category already exists for the given userId
@@ -56,7 +55,7 @@ expensesRoute.get(
   "/",
   expressAsyncHandler(async (req, res) => {
     try {
-      const { userId } = req.query; // Get userId from query parameters
+      const { userId } = req.query;
       if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
       }
@@ -65,7 +64,7 @@ expensesRoute.get(
         where: { userId: userId },
         include: {
           category: {
-            select: { name: true }, // Fetch only the category name
+            select: { name: true },
           },
         },
       });
@@ -120,13 +119,40 @@ expensesRoute.put(
   "/:id",
   expressAsyncHandler(async (req, res) => {
     try {
-      const { amount, categoryId, description, date } = req.body;
+      const { userId, amount, category, description, date } = req.body;
+      let categoryRecord = await prisma.category.findUnique({
+        where: {
+          name_userId: {
+            name: category,
+            userId: userId,
+          },
+        },
+      });
+
+      if (!categoryRecord) {
+        // If category does not exist, create it
+        categoryRecord = await prisma.category.create({
+          data: {
+            name: category,
+            userId,
+          },
+        });
+      }
+
+      // Update the expense with the new or existing category ID
       const updatedExpense = await prisma.expense.update({
         where: { id: req.params.id },
-        data: { amount, categoryId, description, date: new Date(date) },
+        data: {
+          amount,
+          categoryId: categoryRecord.id, // Use the id of the category
+          description,
+          date: new Date(date),
+        },
       });
+
       res.json(updatedExpense);
     } catch (err) {
+      console.log(err.message);
       res.status(500).json({ message: err.message });
     }
   })

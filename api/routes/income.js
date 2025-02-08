@@ -9,24 +9,20 @@ incomesRoute.post(
   "/",
   expressAsyncHandler(async (req, res) => {
     try {
-      console.log(req.body);
       const { userId, amount, category, source, date } = req.body;
       if (!userId || !amount || !category || !source || !date) {
         return res.status(400).json({ message: "All fields are required" });
       }
-      // Check if category exists for the user
       let categoryRecord = await prisma.category.findUnique({
         where: { name_userId: { name: category, userId } },
       });
 
-      // Create category if it does not exist
       if (!categoryRecord) {
         categoryRecord = await prisma.category.create({
           data: { name: category, userId },
         });
       }
 
-      // Create new income record
       const newIncome = await prisma.income.create({
         data: {
           userId,
@@ -67,6 +63,94 @@ incomesRoute.get(
       res.json(formattedIncomes);
     } catch (err) {
       res.status(500).json({ message: err.message });
+    }
+  })
+);
+
+// Get income by ID
+incomesRoute.get(
+  "/:id",
+  expressAsyncHandler(async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const income = await prisma.income.findUnique({
+        where: { id },
+        include: { category: { select: { name: true } } },
+      });
+
+      if (!income) {
+        return res.status(404).json({ message: "Income not found" });
+      }
+
+      res.json({
+        ...income,
+        category: income.category.name,
+      });
+    } catch (err) {
+      console.error("Error fetching income:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  })
+);
+
+// Update an income
+incomesRoute.put(
+  "/:id",
+  expressAsyncHandler(async (req, res) => {
+    console.log(req.body);
+    try {
+      const { userId, amount, category, source, date } = req.body;
+
+      let categoryRecord = await prisma.category.findUnique({
+        where: {
+          name_userId: {
+            name: category,
+            userId: userId,
+          },
+        },
+      });
+
+      if (!categoryRecord) {
+        categoryRecord = await prisma.category.create({
+          data: {
+            name: category,
+            userId,
+          },
+        });
+      }
+
+      const updatedIncome = await prisma.income.update({
+        where: { id: req.params.id },
+        data: {
+          amount,
+          categoryId: categoryRecord.id,
+          source,
+          date: new Date(date),
+        },
+      });
+
+      res.json(updatedIncome);
+    } catch (err) {
+      console.log(err.message);
+      res.status(500).json({ message: err.message });
+    }
+  })
+);
+
+// Delete an income
+incomesRoute.delete(
+  "/:id",
+  expressAsyncHandler(async (req, res) => {
+    try {
+      const deletedIncome = await prisma.income.delete({
+        where: { id: req.params.id },
+      });
+
+      res.json({ message: "Income deleted successfully", deletedIncome });
+    } catch (err) {
+      console.error("Error deleting income:", err);
+      res.status(500).json({ message: "Failed to delete income" });
     }
   })
 );

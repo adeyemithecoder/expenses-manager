@@ -17,7 +17,7 @@ app.use("/api/incomes", incomesRoute);
 app.use("/api/budgets", budgetsRoute);
 app.use("/api/users", userRoute);
 
-app.get("/", (req, res) => res.send("welcome to blog app"));
+app.get("/", (req, res) => res.send("welcome to expenses manager app"));
 app.use((err, req, res, next) => {
   res.status(500).send({ message: `My Mistake= ${err.message}` });
 });

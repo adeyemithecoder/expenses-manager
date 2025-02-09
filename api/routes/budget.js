@@ -109,6 +109,51 @@ budgetsRoute.get(
   })
 );
 
+// Update a budget
+budgetsRoute.put(
+  "/:id",
+  expressAsyncHandler(async (req, res) => {
+    try {
+      const { userId, amount, category, startDate, endDate } = req.body;
+
+      // Find or create category for the user
+      let categoryRecord = await prisma.category.findUnique({
+        where: {
+          name_userId: {
+            name: category,
+            userId: userId,
+          },
+        },
+      });
+
+      if (!categoryRecord) {
+        categoryRecord = await prisma.category.create({
+          data: {
+            name: category,
+            userId,
+          },
+        });
+      }
+
+      // Update the budget with the new or existing category ID
+      const updatedBudget = await prisma.budget.update({
+        where: { id: req.params.id },
+        data: {
+          amount,
+          categoryId: categoryRecord.id,
+          startDate: new Date(startDate),
+          endDate: new Date(endDate),
+        },
+      });
+
+      res.json(updatedBudget);
+    } catch (err) {
+      console.log(err.message);
+      res.status(500).json({ message: err.message });
+    }
+  })
+);
+
 // Delete a budget
 budgetsRoute.delete(
   "/:id",

@@ -66,6 +66,7 @@ budgetsRoute.get(
             select: { name: true },
           },
         },
+        orderBy: { createdAt: "desc" }, // Sort by latest first
       });
 
       const formattedBudgets = budgets.map(({ category, ...rest }) => ({
@@ -75,7 +76,7 @@ budgetsRoute.get(
 
       res.json(formattedBudgets);
     } catch (err) {
-      console.log(err.meta.message);
+      console.log(err.meta?.message || err.message);
       res.status(500).json({ message: err.message });
     }
   })

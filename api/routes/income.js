@@ -9,6 +9,7 @@ incomesRoute.post(
   "/",
   expressAsyncHandler(async (req, res) => {
     try {
+      console.log(req.body);
       const { userId, amount, category, source, date } = req.body;
       if (!userId || !amount || !category || !source || !date) {
         return res.status(400).json({ message: "All fields are required" });
@@ -53,6 +54,7 @@ incomesRoute.get(
       const incomes = await prisma.income.findMany({
         where: { userId },
         include: { category: { select: { name: true } } },
+        orderBy: { createdAt: "desc" }, // Sort by latest first
       });
 
       const formattedIncomes = incomes.map(({ category, ...rest }) => ({

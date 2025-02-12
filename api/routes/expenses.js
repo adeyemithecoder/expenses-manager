@@ -61,18 +61,19 @@ expensesRoute.get(
       }
 
       const expenses = await prisma.expense.findMany({
-        where: { userId: userId },
+        where: { userId },
         include: {
           category: {
             select: { name: true },
           },
         },
+        orderBy: { createdAt: "desc" }, // Sort by latest first
       });
 
-      // Transform each expense to remove the nested category object and add categoryName
+      // Transform each expense to remove the nested category object and add category name
       const formattedExpenses = expenses.map(({ category, ...rest }) => ({
         ...rest,
-        category: category.name, // Add categoryName field
+        category: category.name,
       }));
 
       res.json(formattedExpenses);
